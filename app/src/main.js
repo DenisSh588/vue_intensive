@@ -1,11 +1,50 @@
 const Editor = require("./editor");
+const axios = require("axios");
+const Vue = require("vue");
+const UIkit = require("uikit");
 
 window.editor = new Editor();
 
-window.onload = () => {
-    window.editor.open("index.html");
-}
 
+
+new Vue ({
+    el: "#app",
+    data:{
+        showLoader: true,
+        pageList: []
+    },
+    methods: {
+        onBtnSave() {
+            this.showLoader = true;
+            window.editor.save(
+                () => {
+                    this.showLoader = false;
+                    UIkit.notification({message: 'Успешно сохранено!', status: 'success'})
+                },
+                () => {
+                    this.showLoader = false;
+                    UIkit.notification({message: 'Ошибка сохранения!', status: 'danger'})
+                }
+            );
+        },
+        openPage(page) {
+            this.showLoader = true;
+            window.editor.open(page, () => {
+                this.showLoader = false;
+            });
+        }
+    },
+    created() {
+        window.editor.open("index.html", () => {
+            this.showLoader = false;
+        });
+        axios
+            .get("./api/pageList.php")
+            .then((res) => {
+                this.pageList = res.data;
+            });
+    },
+})
 
 
 

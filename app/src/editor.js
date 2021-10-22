@@ -10,11 +10,11 @@ module.exports = class Editor {
         this.iframe = document.querySelector("iframe");
     }
 
-    open(page){
+    open(page, cb){
         this.currentPage = page;
 
         axios
-            .get("../" + page)
+            .get("../" + page + "?rnd=" + Math.random())
             .then((res) => DOMHelper.parseStrToDom(res.data))
             .then(DOMHelper.wrapTextNodes)
             .then((dom) => {
@@ -23,9 +23,11 @@ module.exports = class Editor {
             })
             .then(DOMHelper.serializeDomToStr)
             .then((html) => axios.post("./api/saveTempPage.php", { html }))
-            .then(() => this.iframe.load("../temp.html"))
+            .then(() => this.iframe.load("../ehdfeihffefheie_fg653rgrfs.html"))
+            .then((html) => axios.post("./api/deleteTempPage.php"))
             .then(() => this.enableEditing()) 
             .then(() => this.injectStyles()) 
+            .then(cb)
     }
     enableEditing() {
         this.iframe.contentDocument.body.querySelectorAll("text-editor").forEach((element) => {
@@ -53,12 +55,14 @@ module.exports = class Editor {
 
    
 
-    save() {
+    save(onSucces, onError) {
         const newDom = DOMHelper.virtualDom.cloneNode(DOMHelper.virtualDom);
         DOMHelper.unwrapTextNodes(newDom);
         const html = DOMHelper.serializeDomToStr(newDom);
         axios
             .post("./api/savePage.php", {pageName: this.currentPage, html})
+            .then(onSucces)
+            .catch(onError);
     }
 }
 
